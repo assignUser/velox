@@ -62,7 +62,7 @@ jobs:
           file: scripts/check-container.dockfile
           build-args: cpu_target=avx
           push: ${{github.event_name != 'pull_request'}}
-          tags: ghcr.io/assignuser/velox-dev:check-avx
+          tags: ghcr.io/${{ github.repository_owner }}/velox-dev:check-avx
 
       - name: Build and Push circle-ci
         uses: docker/build-push-action@v3
@@ -71,7 +71,7 @@ jobs:
           file: scripts/circleci-container.dockfile
           build-args: cpu_target=avx
           push: ${{ github.event_name != 'pull_request'}}
-          tags: ghcr.io/assignuser/velox-dev:circleci-avx
+          tags: ghcr.io/${{ github.repository_owner }}/velox-dev:circleci-avx
 
       - name: Build and Push velox-torcharrow
         uses: docker/build-push-action@v3
@@ -80,11 +80,11 @@ jobs:
           file: scripts/velox-torcharrow-container.dockfile
           build-args: cpu_target=avx
           push: ${{ github.event_name != 'pull_request'}}
-          tags: ghcr.io/assignuser/velox-dev:torcharrow-avx
+          tags: ghcr.io/${{ github.repository_owner }}/velox-dev:torcharrow-avx
 
       - name: Build and Push dev-image
         uses: docker/build-push-action@v3
         with:
           file: scripts/ubuntu-22.04-cpp.dockerfile
           push: ${{ github.event_name != 'pull_request'}}
-          tags: ghcr.io/assignuser/velox-dev:amd64-ubuntu-22.04-avx
+          tags: ghcr.io/${{ github.repository_owner }}/velox-dev:amd64-ubuntu-22.04-avx
