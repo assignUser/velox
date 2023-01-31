@@ -33,7 +33,7 @@ defaults:
 #TODO  concurrency groups?
 jobs:
   benchmark:
-    runs-on: 8-core
+    runs-on: ubuntu-latest
     container: ghcr.io/facebookincubator/velox-dev:amd64-ubuntu-22.04-avx
     env:
       CCACHE_DIR: "${{ github.workspace }}/.ccache/"
