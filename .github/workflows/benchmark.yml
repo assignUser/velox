@@ -16,14 +16,7 @@ name: "Ubuntu Benchmark"
 
 on:
   pull_request:
-    paths:
-      - 'velox/**'
-      - '!velox/docs/**'
-      - 'third_party/**'
-      - 'pyvelox/**'
-      - '.github/workflows/benchmark.yml'
-  push:
-    branches: [main]
+
 
 permissions:
   contents: read
