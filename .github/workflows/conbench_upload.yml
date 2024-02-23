@@ -94,6 +94,7 @@ jobs:
       run: |
         unzip benchmark-results.zip -d benchmark-results
         unzip pr_number.zip
+        ls -l
         pr_number=$(grep -ox -m 1 '[[:digit:]]*' pr_number.txt)
         echo "pr: $pr_number"
         if [ -z "$pr_number" ]; then
