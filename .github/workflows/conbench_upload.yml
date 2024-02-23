@@ -94,7 +94,7 @@ jobs:
       run: |
         unzip benchmark-results.zip -d benchmark-results
         unzip pr_number.zip
-        echo "pr_number=$(cat pr_number.txt)" >> $GITHUB_OUTPUT
+        echo "pr_number=$(grep -ox '[[:digit:]]*' pr_number.txt)" >> $GITHUB_OUTPUT
     - uses: actions/checkout@v3
       with:
         path: velox
