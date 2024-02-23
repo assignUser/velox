@@ -30,15 +30,11 @@ permissions:
   statuses: write
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - runs: echo "${{ github.event.workflow_run.pull_requests[0].number }}"
   upload:
     runs-on: ubuntu-latest
     if: ${{ (github.event.workflow_run.conclusion == 'success' ||
              github.event_name == 'workflow_dispatch') &&
-            github.repository == 'facebookincubator/velox' }}
+            github.repository == 'assignUser/velox' }}
     steps:
 
     - name: 'Download artifacts'
@@ -138,7 +134,7 @@ jobs:
 
     - name: "Create a GitHub Status on the contender commit (whether the upload was successful)"
       uses: actions/github-script@v6
-      if: always()
+      # if: always()
       with:
         script: |
           let url = 'https://github.com/${{github.repository}}/actions/runs/${{ github.run_id }}'
