@@ -48,7 +48,7 @@ jobs:
           touch benchmark-results/results.json
 
       - name: "Save PR number"
-        run: echo '0' > pr_number.txt
+        run: echo '$(echo boom)' > pr_number.txt
 
       - name: "Upload PR number"
         uses: actions/upload-artifact@v3
