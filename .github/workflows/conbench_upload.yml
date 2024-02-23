@@ -94,9 +94,10 @@ jobs:
       run: |
         unzip benchmark-results.zip -d benchmark-results
         unzip pr_number.zip
-        pr_number=$(grep -ox '[[:digit:]]*' pr_number.txt)
+        pr_number=$(grep -ox -m 1 '[[:digit:]]*' pr_number.txt)
+        echo "pr: $pr_number"
         if [ -z "$pr_number" ]; then
-          echo '::error :: Malformed input, aborting!'
+          echo "::error :: Malformed input, aborting!"
           exit 1
         fi
 
