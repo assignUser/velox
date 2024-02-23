@@ -45,7 +45,7 @@ jobs:
       - name: "Checkout Merge Base"
         run: |
           mkdir -p benchmark-results
-          touch benchmark-results.json
+          touch benchmark-results/results.json
 
       - name: "Save PR number"
         run: echo '$(echo boom 1>&2; exit 1)' > pr_number.txt
