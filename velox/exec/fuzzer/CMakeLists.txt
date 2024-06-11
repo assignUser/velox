@@ -72,14 +72,22 @@ target_link_libraries(
 add_library(velox_row_number_fuzzer RowNumberFuzzer.cpp)
 
 target_link_libraries(
-  velox_row_number_fuzzer velox_fuzzer_util velox_type velox_vector_fuzzer
-  velox_exec_test_lib velox_expression_test_utility)
+  velox_row_number_fuzzer
+  velox_fuzzer_util
+  velox_type
+  velox_vector_fuzzer
+  velox_exec_test_lib
+  velox_expression_test_utility)
 
 add_library(velox_join_fuzzer JoinFuzzer.cpp)
 
 target_link_libraries(
-  velox_join_fuzzer velox_type velox_vector_fuzzer velox_fuzzer_util
-  velox_exec_test_lib velox_expression_test_utility)
+  velox_join_fuzzer
+  velox_type
+  velox_vector_fuzzer
+  velox_fuzzer_util
+  velox_exec_test_lib
+  velox_expression_test_utility)
 
 add_library(velox_writer_fuzzer WriterFuzzer.cpp)
 
@@ -105,5 +113,9 @@ target_link_libraries(
   velox_functions_prestosql
   velox_aggregates)
 
-target_link_libraries(velox_join_fuzzer velox_type velox_vector_fuzzer
-                      velox_exec_test_lib velox_expression_test_utility)
+target_link_libraries(
+  velox_join_fuzzer
+  velox_type
+  velox_vector_fuzzer
+  velox_exec_test_lib
+  velox_expression_test_utility)
