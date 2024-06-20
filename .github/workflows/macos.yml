@@ -12,22 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-name: macOS Build
-
-on:
-  push:
-    paths:
-      - "velox/**"
-      - "!velox/docs/**"
-      - "CMakeLists.txt"
-      - "CMake/**"
-      - "third_party/**"
-      - ".github/workflows/macos.yml"
-
-  pull_request:
-    paths:
-      - "velox/**"
-      - "!velox/docs/**"
       - "CMakeLists.txt"
       - "CMake/**"
       - "third_party/**"
@@ -41,6 +25,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+name: macOS Build
+
+on:
+
+  pull_request:
+    paths:
+      - "velox/**"
+      - "!velox/docs/**"
   macos-build:
     name: "${{ matrix.os }}"
     strategy:
@@ -52,6 +44,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       CCACHE_DIR: '${{ github.workspace }}/.ccache'
+      
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,12 +61,15 @@ jobs:
 
           echo "NJOBS=`sysctl -n hw.ncpu`" >> $GITHUB_ENV
 
-      - name: Cache ccache
-        uses: actions/cache@v4
+      - name: Restore ccache
+        uses: assignUser/stash/restore@main
         with:
           path: '${{ env.CCACHE_DIR }}'
-          key: ccache-macos-${{ matrix.os }}-${{ hashFiles('velox/*') }}
-          restore-keys: ccache-macos-${{ matrix.os }}
+          key: ccache-macos-${{ hashFiles('velox/*') }}
+          restore-keys: |
+            ccache-macos-${{ matrix.os }} 
+            ccache-macos
+      
 
       - name: Configure Build
         env:
@@ -95,3 +91,9 @@ jobs:
       - name: Run Tests
         if: false
         run: ctest -j $NJOBS --test-dir _build/debug --output-on-failure
+
+      - name: Save ccache
+        uses: assignUser/stash/save@main
+        with:
+          path: '${{ env.CCACHE_DIR }}'
+          key: ccache-macos-${{ matrix.os }}
