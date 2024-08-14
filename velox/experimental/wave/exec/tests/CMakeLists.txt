@@ -101,4 +101,5 @@ target_link_libraries(
   gflags::gflags
   glog::glog
   fmt::fmt
-  ${FILESYSTEM})
+  ${FILESYSTEM}
+  CUDA::cudart)
