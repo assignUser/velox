@@ -55,8 +55,7 @@ target_link_libraries(
   gflags::gflags
   glog::glog
   fmt::fmt
-  CUDA::cudart
-  ${FILESYSTEM})
+  CUDA::cudart)
 
 add_test(velox_wave_exec_test velox_wave_exec_test)
 
@@ -102,5 +101,4 @@ target_link_libraries(
   gflags::gflags
   glog::glog
   fmt::fmt
-  ${FILESYSTEM}
   CUDA::cudart)
