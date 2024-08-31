@@ -91,6 +91,11 @@ jobs:
         run: |
             cmake --build _build/debug -j $NJOBS
             ccache -s
+      - name: Setup tmate session
+        if: always()
+        uses: mxschmitt/action-tmate@v3
+        with:
+          limit-access-to-actor: true
 
       - uses: assignUser/stash/save@v1
         with:
