@@ -34,43 +34,44 @@ DecodedVector* decode(DecodedVector& decoder, const BaseVector& vector) {
 
 class GenericViewTest : public functions::test::FunctionBaseTest {
  protected:
+  using inner_data_t = std::optional<std::vector<std::optional<int64_t>>>;
   using array_data_t =
-      std::vector<std::optional<std::vector<std::optional<int64_t>>>>;
+      std::vector<inner_data_t>;
 
   array_data_t arrayData1 = {
-      {{}},
-      {{{{std::nullopt}}}},
-      {{std::nullopt, 1}},
-      {{std::nullopt, std::nullopt, std::nullopt}},
-      {{0, 1, 2, 4}},
-      {{99, 98}},
-      {{101, std::nullopt}},
-      {{10001, 12345676, std::nullopt}}, // after this index different
-      {{std::nullopt, 1}},
-      {{std::nullopt, 2}},
-      {{std::nullopt, 3, std::nullopt}},
-      {{0, 1, 2, 4}},
-      {{99, 100}},
-      {{101, std::nullopt, 22}},
-      {{10001, 12345676, std::nullopt, 101}},
+      inner_data_t(),
+      inner_data_t({{{std::nullopt}}}),
+      inner_data_t({{{std::nullopt, 1}}}),
+      inner_data_t({{{std::nullopt, std::nullopt, std::nullopt}}}),
+      inner_data_t({{{0, 1, 2, 4}}}),
+      inner_data_t({{{99, 98}}}),
+      inner_data_t({{{101, std::nullopt}}}),
+      inner_data_t({{{10001, 12345676, std::nullopt}}}), // after this index different
+      inner_data_t({{{std::nullopt, 1}}}),
+      inner_data_t({{{std::nullopt, 2}}}),
+      inner_data_t({{{std::nullopt, 3, std::nullopt}}}),
+      inner_data_t({{{0, 1, 2, 4}}}),
+      inner_data_t({{{99, 100}}}),
+      inner_data_t({{{101, std::nullopt, 22}}}),
+      inner_data_t({{{10001, 12345676, std::nullopt, 101}}}),
   };
 
   array_data_t arrayData2 = {
-      {{}},
-      {{{{std::nullopt}}}},
-      {{std::nullopt, 1}},
-      {{std::nullopt, std::nullopt, std::nullopt}},
-      {{0, 1, 2, 4}},
-      {{99, 98}},
-      {{101, std::nullopt}},
-      {{10001, 12345676, std::nullopt, 1}}, // after this index different
-      {{2, 1}},
-      {{std::nullopt, 3}},
-      {{std::nullopt, 3, std::nullopt, 1}},
-      {{0, 1, 2, 4, 5}},
-      {{99, 100, 12}},
-      {{1011, std::nullopt, 22}},
-      {{10001, 1, std::nullopt, 101}},
+      inner_data_t(),
+      inner_data_t({{{std::nullopt}}}),
+      inner_data_t({{{std::nullopt, 1}}}),
+      inner_data_t({{{std::nullopt, std::nullopt, std::nullopt}}}),
+      inner_data_t({{{0, 1, 2, 4}}}),
+      inner_data_t({{{99, 98}}}),
+      inner_data_t({{{101, std::nullopt}}}),
+      inner_data_t({{{10001, 12345676, std::nullopt, 1}}}), // after this index different
+      inner_data_t({{{2, 1}}}),
+      inner_data_t({{{std::nullopt, 3}}}),
+      inner_data_t({{{std::nullopt, 3, std::nullopt, 1}}}),
+      inner_data_t({{{0, 1, 2, 4, 5}}}),
+      inner_data_t({{{99, 100, 12}}}),
+      inner_data_t({{{1011, std::nullopt, 22}}}),
+      inner_data_t({{{10001, 1, std::nullopt, 101}}}),
   };
 
   template <typename DataT>
