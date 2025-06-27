@@ -286,7 +286,7 @@ function install_minio {
 
   wget "${WGET_OPTIONS}" https://dl.min.io/server/minio/release/"${MINIO_OS}"-${MINIO_ARCH}/archive/minio.RELEASE."${MINIO_VERSION}" -O "${MINIO_BINARY_NAME}"
   chmod +x ./"${MINIO_BINARY_NAME}"
-  ${SUDO} mv ./"${MINIO_BINARY_NAME}" /usr/local/bin/
+  ${SUDO} mv ./"${MINIO_BINARY_NAME}" "$INSTALL_PREFIX"/bin/
 }
 
 function install_gcs-sdk-cpp {
@@ -385,6 +385,6 @@ function install_azure-storage-sdk-cpp {
 function install_hdfs_deps {
   # Dependencies for Hadoop testing
   wget_and_untar https://archive.apache.org/dist/hadoop/common/hadoop-"${HADOOP_VERSION}"/hadoop-"${HADOOP_VERSION}".tar.gz hadoop
-  cp -a "${DEPENDENCY_DIR}"/hadoop /usr/local/
-  wget "${WGET_OPTIONS}" -P /usr/local/hadoop/share/hadoop/common/lib/ https://repo1.maven.org/maven2/junit/junit/4.11/junit-4.11.jar
+  cp -a "${DEPENDENCY_DIR}"/hadoop "$INSTALL_PREFIX"
+  wget "${WGET_OPTIONS}" -P "$INSTALL_PREFIX"/hadoop/share/hadoop/common/lib/ https://repo1.maven.org/maven2/junit/junit/4.11/junit-4.11.jar
 }
