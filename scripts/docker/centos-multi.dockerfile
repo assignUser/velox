@@ -1,0 +1,145 @@
+# Copyright (c) Facebook, Inc. and its affiliates.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# Build the test and build container for presto_cpp
+
+# This multi-stage Dockerfile contains the following relevant targets:
+#   - centos9: Our base CI build
+#   - adapters: Based on centos9 with all optional dependencies installed
+#   - pyvelox: Image used by cibuildwheel to build pyvelox
+
+########################
+# Stage 1: Base Build  #
+########################
+ARG image=quay.io/centos/centos:stream9
+FROM $image AS base-build
+
+COPY scripts/setup-helper-functions.sh /
+COPY scripts/setup-versions.sh /
+COPY scripts/setup-common.sh /
+COPY scripts/setup-centos9.sh /
+COPY CMake/resolve_dependency_modules/arrow/cmake-compatibility.patch /
+
+ARG VELOX_BUILD_SHARED=ON
+# Building libvelox.so requires folly and gflags to be built shared as well for now
+ENV VELOX_BUILD_SHARED=${VELOX_BUILD_SHARED}
+
+RUN mkdir build
+WORKDIR /build
+
+# We don't want UV symlinks to be copied into the following stages
+ENV UV_TOOL_BIN_DIR=/usr/local/bin \
+    INSTALL_PREFIX=/deps
+
+# CMake 4.0 removed support for cmake minimums of <=3.5 and will fail builds, this overrides it
+ENV CMAKE_POLICY_VERSION_MINIMUM="3.5" \
+    VELOX_ARROW_CMAKE_PATCH=/cmake-compatibility.patch
+
+RUN bash /setup-centos9.sh
+
+########################
+# Stage 2: Base Image  #
+########################
+FROM $image AS base-image
+
+COPY scripts/setup-helper-functions.sh /
+COPY scripts/setup-versions.sh /
+COPY scripts/setup-common.sh /
+COPY scripts/setup-centos9.sh /
+
+SHELL ["/bin/bash", "-c"]
+
+# This way it's on the PATH and doesn't clash with the version installed in manylinux
+ENV UV_TOOL_BIN_DIR=/usr/local/bin \
+    UV_INSTALL_DIR=/usr/local/bin
+
+RUN source /setup-centos9.sh && \
+      install_build_prerequisites && \
+      install_velox_deps_from_dnf && \
+      dnf clean all
+
+COPY --from=base-build /deps /usr/local
+
+########################
+# Stage: Centos 9      #
+########################
+FROM base-image AS centos9
+
+# Install tools needed for CI
+RUN source /setup-centos9.sh && \
+      dnf_install 'dnf-command(config-manager)' && \
+      dnf config-manager --add-repo 'https://cli.github.com/packages/rpm/gh-cli.repo' && \
+      dnf_install gh jq && \
+      dnf clean all
+
+ENV CC=/opt/rh/gcc-toolset-12/root/bin/gcc \
+    CXX=/opt/rh/gcc-toolset-12/root/bin/g++
+
+ENTRYPOINT ["/bin/bash", "-c", "source /opt/rh/gcc-toolset-12/enable && exec \"$@\"", "--"]
+CMD ["/bin/bash"]
+
+########################
+# Stage: PyVelox       #
+########################
+FROM base-image AS pyvelox
+
+ENV LD_LIBRARY_PATH="/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH"
+
+########################
+# Stage: Adapters      #
+########################
+FROM centos9 AS adapters
+
+SHELL ["/bin/bash", "-c"]
+
+# We can't split this into a build stage without changing the script,
+# because the adapters deps depend on dnf installed deps
+RUN mkdir build && cd build && \
+    source /setup-centos9.sh && \
+    install_adapters && \
+    install_cuda 12.8 && \
+    cd / && \
+    rm -rf /build && dnf remove -y conda && dnf clean all
+
+# put CUDA binaries on the PATH
+ENV PATH=/usr/local/cuda/bin:${PATH}
+
+# configuration for nvidia-container-toolkit
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES="compute,utility"
+
+# install miniforge
+RUN curl -L -o /tmp/miniforge.sh \
+    https://github.com/conda-forge/miniforge/releases/download/23.11.0-0/Mambaforge-23.11.0-0-Linux-x86_64.sh && \
+    bash /tmp/miniforge.sh -b -p /opt/miniforge && \
+    rm /tmp/miniforge.sh
+ENV PATH=/opt/miniforge/condabin:${PATH}
+
+# Install test dependencies
+RUN mamba create -y --name adapters python=3.8
+SHELL ["mamba", "run", "-n", "adapters", "/bin/bash", "-c"]
+
+RUN pip install https://github.com/googleapis/storage-testbench/archive/refs/tags/v0.36.0.tar.gz
+RUN mamba install -y nodejs
+RUN npm install -g azurite
+
+ENV HADOOP_HOME=/usr/local/hadoop \
+    HADOOP_ROOT_LOGGER="WARN,DRFA" \
+    LC_ALL=C \
+    PATH=/usr/local/hadoop/bin:${PATH} \
+    JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk \
+    PATH=/usr/lib/jvm/java-1.8.0-openjdk/bin:${PATH}
+
+COPY scripts/setup-classpath.sh /
+ENTRYPOINT ["/bin/bash", "-c", "source /setup-classpath.sh && source /opt/rh/gcc-toolset-12/enable && exec \"$@\"", "--"]
+CMD ["/bin/bash"]
