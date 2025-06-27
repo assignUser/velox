@@ -38,6 +38,7 @@ SUDO="${SUDO:-""}"
 USE_CLANG="${USE_CLANG:-false}"
 export INSTALL_PREFIX=${INSTALL_PREFIX:-"/usr/local"}
 DEPENDENCY_DIR=${DEPENDENCY_DIR:-$(pwd)/deps-download}
+export UV_TOOL_BIN_DIR="${UV_TOOL_BIN_DIR:-"$INSTALL_PREFIX"/bin}"
 
 function dnf_install {
   dnf install -y -q --setopt=install_weak_deps=False "$@"
@@ -47,16 +48,27 @@ function install_clang15 {
   dnf_install clang15 gcc-toolset-13-libatomic-devel
 }
 
+function install_uv {
+  if command -v uv >/dev/null 2>&1; then
+    echo "uv is already installed."
+  else
+    echo "Installing uv..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    uv update-shell
+  fi
+}
+
 # Install packages required for build.
 function install_build_prerequisites {
   dnf update -y
   dnf_install epel-release dnf-plugins-core # For ccache, ninja
   dnf config-manager --set-enabled crb
   dnf update -y
-  dnf_install ninja-build cmake ccache gcc-toolset-12 git wget which
-  dnf_install autoconf automake python3-devel pip libtool
+  dnf_install autoconf automake ccache cmake gcc-toolset-12 git libtool \
+    ninja-build python3-devel wget which
 
-  pip install cmake==3.30.4
+  install_uv
+  uv tool install cmake
 
   if [[ ${USE_CLANG} != "false" ]]; then
     install_clang15
@@ -69,9 +81,6 @@ function install_velox_deps_from_dnf {
     openssl-devel re2-devel libzstd-devel lz4-devel double-conversion-devel \
     libdwarf-devel elfutils-libelf-devel curl-devel libicu-devel bison flex \
     libsodium-devel zlib-devel gtest-devel gmock-devel xxhash-devel
-
-  # install sphinx for doc gen
-  pip install sphinx sphinx-tabs breathe sphinx_rtd_theme
 }
 
 function install_conda {
