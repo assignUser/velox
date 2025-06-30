@@ -45,7 +45,10 @@ ENV UV_TOOL_BIN_DIR=/usr/local/bin \
 ENV CMAKE_POLICY_VERSION_MINIMUM="3.5" \
     VELOX_ARROW_CMAKE_PATCH=/cmake-compatibility.patch
 
-RUN bash /setup-centos9.sh
+# Some CMake configs contain the hard coded prefix '/deps', we need to replace that with
+# the future location to avoid build errors in the base-image
+RUN bash /setup-centos9.sh && \
+    find $INSTALL_PREFIX/lib/cmake -type f -name '*.cmake' -exec sed -i 's|/deps/|/usr/local/|g' {} \;
 
 ########################
 # Stage 2: Base Image  #
