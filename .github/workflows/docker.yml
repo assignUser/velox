@@ -21,7 +21,7 @@ on:
       - .github/workflows/docker.yml
       - docker-compose.yml
   push:
-    branches: [main]
+    branches: [main, docker-refactor]
     paths:
       - scripts/docker/*.dockerfile
       - scripts/setup-*.sh
