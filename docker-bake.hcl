@@ -20,6 +20,23 @@ function "cache-from-arch" {
   }
 }
 
+function "ci_images_by_arch" {
+  params = [arch]
+  result = ["centos9-${arch}", "adapters-${arch}"]
+}
+
+group "ci-amd64" {
+  targets = ci_images_by_arch("amd64")
+}
+
+group "ci-arm64" {
+  targets = ci_images_by_arch("arm64")
+}
+
+group "default" {
+  targets = []
+}
+
 target "pyvelox" {
   name       = "pyvelox-${arch}"
   context    = "."
@@ -62,19 +79,12 @@ target "centos9" {
   cache-from = [cache-from-arch("centos9", "${arch}")]
 }
 
-function "ci_images_by_arch" {
-  params = [arch]
-  result = ["centos9-${arch}", "adapters-${arch}"]
+target "ubuntu-amd64" {
+  inherits = ["ubuntu-cpp"]
 }
 
-group "ci-amd64" {
-  targets = ci_images_by_arch("amd64")
-}
-
-group "ci-arm64" {
-  targets = ci_images_by_arch("arm64")
-}
-
-group "default" {
+group "ubuntu-arm64" {
+  # We don't actually want to build ubunt arm image, this is a trick to simplify CI
+  # Empty targets don't fail the build.
   targets = []
 }

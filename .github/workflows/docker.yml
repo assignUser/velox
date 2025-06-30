@@ -34,8 +34,116 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  BASE_NAME: ghcr.io/assignuser
 jobs:
+  multi-arch-base:
+    name: Build ${{ matrix.target }} Image on ${{ matrix.os.platform }}
+    runs-on: ${{ matrix.os.runner }}
+    permissions:
+      packages: write
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - {runner: ubuntu-24.04-arm, platform: arm64}
+          - {runner: ubuntu-24.04, platform: amd64}
+        target: [ci, pyvelox, ubuntu]
+
+    steps:
+      - name: Free Disk Space
+        run: |
+          # 15G
+          sudo rm -rf /usr/local/lib/android || :
+          # 5.3GB
+          sudo rm -rf /opt/hostedtoolcache/CodeQL || :
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: apache/infrastructure-actions/stash/restore@3354c1565d4b0e335b78a76aedd82153a9e144d4
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          path: /tmp/docker_cache
+          key: docker-cache-${{ matrix.target }}-${{ matrix.os.platform }}
+
+      - name: Bake Images
+        id: bake
+        uses: docker/bake-action@37816e747588cb137173af99ab33873600c46ea8 # v6.8.0
+        with:
+          targets: ${{ matrix.target }}-${{ matrix.os.platform }}
+          push: ${{ github.event_name != 'pull_request' }}
+          set: |
+            *.cache-to=type=local,dest=/tmp/docker_cache,compression=zstd,mode=max
+            *.cache-from=type=local,src=/tmp/docker_cache
+
+      - uses: apache/infrastructure-actions/stash/save@3354c1565d4b0e335b78a76aedd82153a9e144d4
+        if: ${{ ! cancelled() && github.event_name == 'pull_request' }}
+        with:
+          path: /tmp/docker_cache
+          key: docker-cache-${{ matrix.target }}-${{ matrix.os.platform }}
+
+      - name: Export digests
+        env:
+          METADATA: ${{ steps.bake.outputs.metadata }}
+          DIGEST_DIR: ${{ runner.temp }}/digests
+        run: |
+          mkdir -p "$DIGEST_DIR"
+          cd "$DIGEST_DIR" || exit 1
+          echo "$METADATA" | jq -r 'to_entries[] | .key | split("-") | if length <= 1 then empty else .[0] end' | \
+            while read -r image_name; do
+              touch "$image_name"
+            done
+          ls -la
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.target }}-${{ matrix.os.platform }}
+          path: ${{ runner.temp }}/digests/*
+          retention-days: 1
+
+  merge:
+    if: ${{ github.event_name != 'pull_request' }}
+    needs: multi-arch-base
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Create manifest list and push
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          ls -laR
+
+          for file in *; do
+            image_name="$BASE_NAME/velox-dev:$file"
+
+            docker buildx imagetools create -t "$image_name" "${image_name}-amd64" "${image_name}-arm64"
+          done
+
   linux:
+    if: false
     name: Build and Push ${{ matrix.name }}
     runs-on: ubuntu-latest
     permissions:
