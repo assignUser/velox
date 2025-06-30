@@ -13,8 +13,8 @@ target "pyvelox" {
   VELOX_BUILD_SHARED = "OFF"
 }
 
-group "multi-platform" {
-  targets = ["centos-cpp", "adapters-cpp", "pyvelox"]
+group "ci" {
+  targets = ["centos-cpp", "adapters-cpp"]
 }
 
 group "default" {
