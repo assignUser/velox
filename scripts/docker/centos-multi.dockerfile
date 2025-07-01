@@ -123,7 +123,7 @@ ENV NVIDIA_DRIVER_CAPABILITIES="compute,utility"
 
 # install miniforge
 RUN curl -L -o /tmp/miniforge.sh \
-    https://github.com/conda-forge/miniforge/releases/download/23.11.0-0/Mambaforge-23.11.0-0-Linux-x86_64.sh && \
+    https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh && \
     bash /tmp/miniforge.sh -b -p /opt/miniforge && \
     rm /tmp/miniforge.sh
 ENV PATH=/opt/miniforge/condabin:${PATH}
