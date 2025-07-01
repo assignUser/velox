@@ -118,19 +118,11 @@ ENV PATH=/usr/local/cuda/bin:${PATH}
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES="compute,utility"
 
-# install miniforge
-RUN curl -L -o /tmp/miniforge.sh \
-    https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh && \
-    bash /tmp/miniforge.sh -b -p /opt/miniforge && \
-    rm /tmp/miniforge.sh
-ENV PATH=/opt/miniforge/condabin:${PATH}
-
 # Install test dependencies
-RUN mamba create -y --name adapters python=3.8
-SHELL ["mamba", "run", "-n", "adapters", "/bin/bash", "-c"]
+RUN uv pip install --system https://github.com/googleapis/storage-testbench/archive/refs/tags/v0.36.0.tar.gz
 
-RUN pip install https://github.com/googleapis/storage-testbench/archive/refs/tags/v0.36.0.tar.gz
-RUN mamba install -y nodejs
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.3/install.sh | bash
+RUN . /root/.nvm/nvm.sh && nvm install 22
 RUN npm install -g azurite
 
 ENV HADOOP_HOME=/usr/local/hadoop \
