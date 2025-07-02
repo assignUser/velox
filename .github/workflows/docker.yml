@@ -76,9 +76,8 @@ jobs:
         uses: docker/bake-action@37816e747588cb137173af99ab33873600c46ea8 # v6.8.0
         with:
           targets: ${{ matrix.target }}
-          push: ${{ github.event_name != 'pull_request' }}
           set: |
-            *.output=type=image,push-by-digest=true,name-canonical=true
+            *.output=type=image,push-by-digest=true,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
             *.cache-to=type=local,dest=/tmp/docker_cache_new,compression=zstd,mode=max
             *.cache-from=type=local,src=/tmp/docker_cache
             *.cache-from=type=registry,ref=ghcr.io/facebookincubator/velox-dev
