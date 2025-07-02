@@ -46,8 +46,6 @@ services:
         VELOX_BUILD_SHARED: "ON"
 
   adapters-cpp:
-    # scripts/docker/adapters.dockerfile uses SHELL which is not supported for OCI image format.
-    # podman users must specify "--podman-build-args='--format docker'" argument.
     extends: centos-cpp
     image: ghcr.io/facebookincubator/velox-dev:adapters
     environment:

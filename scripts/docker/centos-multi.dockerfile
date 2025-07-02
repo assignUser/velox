@@ -60,16 +60,14 @@ COPY scripts/setup-versions.sh /
 COPY scripts/setup-common.sh /
 COPY scripts/setup-centos9.sh /
 
-SHELL ["/bin/bash", "-c"]
-
 # This way it's on the PATH and doesn't clash with the version installed in manylinux
 ENV UV_TOOL_BIN_DIR=/usr/local/bin \
     UV_INSTALL_DIR=/usr/local/bin
 
-RUN source /setup-centos9.sh && \
+RUN /bin/bash -c 'source /setup-centos9.sh && \
       install_build_prerequisites && \
       install_velox_deps_from_dnf && \
-      dnf clean all
+      dnf clean all'
 
 COPY --from=base-build /deps /usr/local
 
@@ -79,11 +77,11 @@ COPY --from=base-build /deps /usr/local
 FROM base-image AS centos9
 
 # Install tools needed for CI
-RUN source /setup-centos9.sh && \
+RUN /bin/bash -c "source /setup-centos9.sh && \
       dnf_install 'dnf-command(config-manager)' && \
       dnf config-manager --add-repo 'https://cli.github.com/packages/rpm/gh-cli.repo' && \
       dnf_install gh jq && \
-      dnf clean all
+      dnf clean all"
 
 ENV CC=/opt/rh/gcc-toolset-12/root/bin/gcc \
     CXX=/opt/rh/gcc-toolset-12/root/bin/g++
@@ -103,16 +101,15 @@ ENV LD_LIBRARY_PATH="/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH"
 ########################
 FROM centos9 AS adapters
 
-SHELL ["/bin/bash", "-c"]
 
 # We can't split this into a build stage without changing the script,
 # because the adapters deps depend on dnf installed deps
-RUN mkdir build && cd build && \
+RUN /bin/bash -c 'mkdir build && cd build && \
     source /setup-centos9.sh && \
     install_adapters && \
     install_cuda 12.8 && \
     cd / && \
-    rm -rf /build && dnf remove -y conda && dnf clean all
+    rm -rf /build && dnf remove -y conda && dnf clean all'
 
 # put CUDA binaries on the PATH
 ENV PATH=/usr/local/cuda/bin:${PATH}
