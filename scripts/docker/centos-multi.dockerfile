@@ -101,15 +101,14 @@ ENV LD_LIBRARY_PATH="/usr/local/lib:/usr/local/lib64:$LD_LIBRARY_PATH"
 ########################
 FROM centos9 AS adapters
 
+COPY scripts/setup-centos-adapters.sh /
 
 # We can't split this into a build stage without changing the script,
 # because the adapters deps depend on dnf installed deps
-RUN /bin/bash -c 'mkdir build && cd build && \
-    source /setup-centos9.sh && \
-    install_adapters && \
-    install_cuda 12.8 && \
+RUN mkdir build && cd build && \
+    bash /setup-centos-adapters.sh && \
     cd / && \
-    rm -rf /build && dnf remove -y conda && dnf clean all'
+    rm -rf /build && dnf clean all
 
 # put CUDA binaries on the PATH
 ENV PATH=/usr/local/cuda/bin:${PATH}
