@@ -76,7 +76,7 @@ jobs:
         uses: docker/bake-action@37816e747588cb137173af99ab33873600c46ea8 # v6.8.0
         with:
           targets: ${{ matrix.target }}
-          push: false #${{ github.event_name != 'pull_request' }}
+          push: ${{ github.event_name != 'pull_request' }}
           set: |
             *.output=type=image,push-by-digest=true,name-canonical=true
             *.cache-to=type=local,dest=/tmp/docker_cache_new,compression=zstd,mode=max
@@ -113,6 +113,49 @@ jobs:
           path: ${{ runner.temp }}/digests/*
           if-no-files-found: error
           retention-days: 1
+
+  merge:
+    if: ${{ github.event_name != 'pull_request' }}
+    needs: multi-arch-base
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772 # v3.4.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ runner.temp }}/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Create manifest list and push
+        working-directory: ${{ runner.temp }}/digests
+        run: |
+          for dir in */; do
+            dir=${dir%/}  # Remove trailing slash
+
+            # Get the base image name (e.g., velox-dev:adapters)
+            name_with_tag=$(echo "$dir" | tr '_' ':')
+
+            image_name="ghcr.io/facebookincubator/$name_with_tag"
+            args=("-t $image_name")
+
+            pushd "$dir" || exit 1
+            # Add each digest to the command
+            for digest_file in *; do
+              args+=("$image_name@sha256:$digest_file")
+            done
+            popd || exit 1
+
+            docker buildx imagetools create "${args[@]}"
+          done
 
   linux:
     if: false
