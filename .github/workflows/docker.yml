@@ -79,6 +79,7 @@ jobs:
         with:
           targets: ${{ matrix.target }}
           set: |
+            *.tags=
             *.output=type=image,push-by-digest=true,name=${{ env.BASE_NAME }}/velox-dev,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
             *.cache-to=type=local,dest=/tmp/docker_cache_new,compression=zstd,mode=max
             *.cache-from=type=local,src=/tmp/docker_cache
