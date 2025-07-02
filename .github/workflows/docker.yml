@@ -90,10 +90,29 @@ jobs:
           path: /tmp/docker_cache_new
           key: docker-cache-${{ matrix.target }}-${{ matrix.os.platform }}
 
-      - name: Show bake json
+      - name: Export digests
         env:
-          METADATA: ${{ toJSON(steps.bake.outputs.metadata) }}
-        run: echo "$METATDATA"
+          METADATA: ${{ steps.bake.outputs.metadata }}
+          DIGEST_DIR: ${{ runner.temp }}/digests
+        run: |
+          mkdir -p "$DIGEST_DIR"
+          cd "$DIGEST_DIR" || exit 1
+          echo "$METADATA" | jq -r 'to_entries[] | ( .value["image.name"] | split("/")[-1] ) +
+            " " + ( .value["containerimage.digest"] | split(":")[-1] )' | \
+            while read -r image_name digest; do
+              image_name=$( echo "$image_name" | tr ':' '_' )
+              mkdir -p "$image_name"
+              touch "$image_name/$digest"
+            done
+          ls -laR
+
+      - name: Upload digest
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ matrix.target }}-${{ matrix.os.platform }}
+          path: ${{ runner.temp }}/digests/*
+          if-no-files-found: error
+          retention-days: 1
 
   linux:
     if: false
