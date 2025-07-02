@@ -34,6 +34,8 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  BASE_NAME: ghcr.io/assignuser
 jobs:
   multi-arch-base:
     name: Build ${{ matrix.target }} Image on ${{ matrix.os.platform }}
@@ -77,7 +79,7 @@ jobs:
         with:
           targets: ${{ matrix.target }}
           set: |
-            *.output=type=image,push-by-digest=true,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
+            *.output=type=image,push-by-digest=true,name=${{ env.BASE_NAME }}/velox-dev,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
             *.cache-to=type=local,dest=/tmp/docker_cache_new,compression=zstd,mode=max
             *.cache-from=type=local,src=/tmp/docker_cache
             *.cache-from=type=registry,ref=ghcr.io/facebookincubator/velox-dev
@@ -143,13 +145,13 @@ jobs:
             # Get the base image name (e.g., velox-dev:adapters)
             name_with_tag=$(echo "$dir" | tr '_' ':')
 
-            image_name="ghcr.io/facebookincubator/$name_with_tag"
+            image_name="$BASE_NAME/$name_with_tag"
             args=("-t $image_name")
 
             pushd "$dir" || exit 1
             # Add each digest to the command
             for digest_file in *; do
-              args+=("$image_name@sha256:$digest_file")
+              args+=("$BASE_NAME/velox-dev@sha256:$digest_file")
             done
             popd || exit 1
 
