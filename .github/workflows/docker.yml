@@ -72,7 +72,7 @@ jobs:
           push: false #${{ github.event_name != 'pull_request' }}
           set: |
             *.output=type=image,push-by-digest=true,name-canonical=true
-            *.cache-to=type=local,dest=/tmp/docker_cache,compression=zstd
+            *.cache-to=type=local,dest=/tmp/docker_cache,compression=zstd,mode=max
             *.cache-from=type=local,src=/tmp/docker_cache
             *.cache-from=type=registry,ref=ghcr.io/facebookincubator/velox-dev
 
