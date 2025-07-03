@@ -81,15 +81,14 @@ jobs:
           set: |
             *.tags=
             *.output=type=image,push-by-digest=true,name=${{ env.BASE_NAME }}/velox-dev,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
-            *.cache-to=type=local,dest=/tmp/docker_cache_new,compression=zstd,mode=max
+            *.cache-to=type=local,dest=/tmp/docker_cache,compression=zstd,mode=max
             *.cache-from=type=local,src=/tmp/docker_cache
             *.cache-from=type=registry,ref=ghcr.io/facebookincubator/velox-dev
 
       - uses: apache/infrastructure-actions/stash/save@3354c1565d4b0e335b78a76aedd82153a9e144d4
         if: ${{ ! cancelled() }}
         with:
-          # We cache to a new directory to keep the cache small
-          path: /tmp/docker_cache_new
+          path: /tmp/docker_cache
           key: docker-cache-${{ matrix.target }}-${{ matrix.os.platform }}
 
       - name: Export digests
