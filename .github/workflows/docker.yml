@@ -82,8 +82,9 @@ jobs:
             *.tags=
             *.output=type=image,push-by-digest=true,name=${{ env.BASE_NAME }}/velox-dev,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
             *.cache-to=type=local,dest=/tmp/docker_cache,compression=zstd,mode=max
+            *.cache-to=type=registry,ref=ghcr.io/facebookincubator/velox-dev:build-cache-${{ matrix.target }},mode=max,compression=zstd
             *.cache-from=type=local,src=/tmp/docker_cache
-            *.cache-from=type=registry,ref=ghcr.io/facebookincubator/velox-dev
+            *.cache-from=type=registry,ref=ghcr.io/facebookincubator/velox-dev:build-cache-${{ matrix.target }}
 
       - uses: apache/infrastructure-actions/stash/save@3354c1565d4b0e335b78a76aedd82153a9e144d4
         if: ${{ ! cancelled() }}
