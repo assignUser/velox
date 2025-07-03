@@ -139,11 +139,15 @@ jobs:
       - name: Create manifest list and push
         working-directory: ${{ runner.temp }}/digests
         run: |
+          ls -laR
+
           for dir in */; do
             dir=${dir%/}  # Remove trailing slash
 
             image_name="$BASE_NAME/velox-dev:$dir"
             args=("-t $image_name")
+
+            echo "Creating $image_name"
 
             pushd "$dir" || exit 1
             # Add each digest to the command
@@ -152,7 +156,8 @@ jobs:
             done
             popd || exit 1
 
-            echo docker buildx imagetools create "${args[@]}"
+            echo "Creating Image with these args: ${args[@]}"
+
             docker buildx imagetools create "${args[@]}"
           done
 
