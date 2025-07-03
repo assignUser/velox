@@ -145,7 +145,7 @@ jobs:
             dir=${dir%/}  # Remove trailing slash
 
             image_name="$BASE_NAME/velox-dev:$dir"
-            args=("-t $image_name")
+            args=("-t" "$image_name")
 
             echo "Creating $image_name"
 
