@@ -156,6 +156,7 @@ jobs:
             done
             popd || exit 1
 
+            echo docker buildx imagetools create "${args[@]}"
             docker buildx imagetools create "${args[@]}"
           done
 
