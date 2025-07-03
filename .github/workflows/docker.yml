@@ -99,8 +99,8 @@ jobs:
         run: |
           mkdir -p "$DIGEST_DIR"
           cd "$DIGEST_DIR" || exit 1
-          echo "$METADATA" | jq -r 'to_entries[] | ( .value["image.name"] | split("/")[-1] ) +
-            " " + ( .value["containerimage.digest"] | split(":")[-1] )' | \
+          echo "$METADATA" | jq -r 'to_entries[] | .key + " " +
+            ( .value["containerimage.digest"] | split(":")[-1] )' | \
             while read -r image_name digest; do
               image_name=$( echo "$image_name" | tr ':' '_' )
               mkdir -p "$image_name"
@@ -143,10 +143,7 @@ jobs:
           for dir in */; do
             dir=${dir%/}  # Remove trailing slash
 
-            # Get the base image name (e.g., velox-dev:adapters)
-            name_with_tag=$(echo "$dir" | tr '_' ':')
-
-            image_name="$BASE_NAME/$name_with_tag"
+            image_name="$BASE_NAME/velox-dev:$dir"
             args=("-t $image_name")
 
             pushd "$dir" || exit 1

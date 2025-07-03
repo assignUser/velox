@@ -13,8 +13,18 @@ target "pyvelox" {
   VELOX_BUILD_SHARED = "OFF"
 }
 
+# Create targets that match the tags we use to make it easier to create
+# the multi-platform images in CI
+target "adapters" {
+  inherits = ["adapters-cpp"]
+}
+
+target "centos9" {
+  inherits = ["centos-cpp"]
+}
+
 group "ci" {
-  targets = ["centos-cpp", "adapters-cpp"]
+  targets = ["centos9", "adapters"]
 }
 
 group "default" {
