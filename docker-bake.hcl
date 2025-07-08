@@ -99,11 +99,13 @@ group "ubuntu-arm64" {
 }
 
 target "spark-server" {
+  target     = "spark-server"
   cache-to   = cache-to-arch("spark-server", "amd64")
   cache-from = cache-from-arch("spark-server", "amd64")
 }
 
 target "presto-java" {
+  target     = "presto-java"
   cache-to   = cache-to-arch("presto-java", "amd64")
   cache-from = cache-from-arch("presto-java", "amd64")
 }
