@@ -34,7 +34,7 @@ MACHINE=$(uname -m)
 
 # Read WGET_OPTIONS into an array which can be expanded to nothing
 # using a normal variable expands into an empty string causing wget to exit 1
-read -r -a WGET_OPTS <<<"$WGET_OPTIONS"
+read -r -a WGET_OPTS <<<"${WGET_OPTIONS:-}"
 
 mkdir -p "${DEPENDENCY_DIR}"
 
@@ -174,7 +174,7 @@ function install_arrow {
     # Can be removed after an upgrade to Arrow 20.0.0
     if [ -z "$VELOX_ARROW_CMAKE_PATCH" ]; then
       # We need to set a different path when building the Dockerfile.
-      ABSOLUTE_SCRIPTDIR=$(realpath $SCRIPT_DIR)
+      ABSOLUTE_SCRIPTDIR=$(realpath "$SCRIPT_DIR")
       VELOX_ARROW_CMAKE_PATCH="$ABSOLUTE_SCRIPTDIR/../CMake/resolve_dependency_modules/arrow/cmake-compatibility.patch"
     fi
 
@@ -390,4 +390,18 @@ function install_hdfs_deps {
   wget_and_untar https://archive.apache.org/dist/hadoop/common/hadoop-"${HADOOP_VERSION}"/hadoop-"${HADOOP_VERSION}".tar.gz hadoop
   cp -a "${DEPENDENCY_DIR}"/hadoop "$INSTALL_PREFIX"
   wget "${WGET_OPTS[@]}" -P "$INSTALL_PREFIX"/hadoop/share/hadoop/common/lib/ https://repo1.maven.org/maven2/junit/junit/4.11/junit-4.11.jar
+}
+
+function install_uv {
+  if command -v uv >/dev/null 2>&1; then
+    echo "uv is already installed."
+  else
+    echo "Installing uv..."
+
+    export UV_TOOL_BIN_DIR="${UV_TOOL_BIN_DIR:-$INSTALL_PREFIX/bin}"
+    export UV_INSTALL_DIR=${UV_INSTALL_DIR:-"$UV_TOOL_BIN_DIR"}
+
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    uv tool update-shell
+  fi
 }

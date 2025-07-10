@@ -48,22 +48,14 @@ function install_clang15 {
   dnf_install clang15 gcc-toolset-13-libatomic-devel
 }
 
-function install_uv {
-  if command -v uv >/dev/null 2>&1; then
-    echo "uv is already installed."
-  else
-    echo "Installing uv..."
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-    uv tool update-shell
-  fi
-}
-
 # Install packages required for build.
 function install_build_prerequisites {
   dnf update -y
   dnf_install epel-release dnf-plugins-core # For ccache, ninja
-  dnf config-manager --set-enabled crb
-  dnf update -y
+  if grep -q CentOS /etc/os-release; then
+    dnf config-manager --set-enabled crb
+    dnf update -y
+  fi
   dnf_install autoconf automake ccache gcc-toolset-12 git libtool \
     ninja-build python3-pip python3-devel wget which
 
