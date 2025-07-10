@@ -405,3 +405,11 @@ function install_uv {
     uv tool update-shell
   fi
 }
+
+function uv_install {
+  uv tool install "$@" || {
+    ret=$?
+    # exit code 2 means the binary already exists, so we can ignore that
+    [ "$ret" -eq 2 ] || exit "$ret"
+  }
+}
