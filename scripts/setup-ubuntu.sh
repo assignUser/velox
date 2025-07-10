@@ -85,7 +85,7 @@ function install_build_prerequisites {
     wget
 
   install_uv
-  uv tool install cmake==3.28.3
+  uv_install cmake==3.28.3
 
   install_gcc11_if_needed
 
